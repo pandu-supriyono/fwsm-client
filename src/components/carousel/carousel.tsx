@@ -46,6 +46,7 @@ const Carousel = (props: CarouselProps) => {
   const carouselContainer = useRef()
   const [currentItemIndex, setCurrentItem] = useState(0)
   const [currentItemOffset, setCurrentItemOffset] = useState(0)
+  //@ts-ignore
   const numberOfItems = props.children.length - 1
 
   const goToPrevItem = () => {
@@ -74,6 +75,7 @@ const Carousel = (props: CarouselProps) => {
 
   useEffect(() => {
     setCurrentItemOffset(
+      //@ts-ignore
       carouselContainer.current.children[currentItemIndex].offsetLeft
     )
   }, [currentItemIndex])
@@ -81,6 +83,7 @@ const Carousel = (props: CarouselProps) => {
   useEffect(() => {
     const handleResize = () => {
       setCurrentItemOffset(
+        //@ts-ignore
         carouselContainer.current.children[currentItemIndex].offsetLeft
       )
     }
@@ -101,6 +104,7 @@ const Carousel = (props: CarouselProps) => {
       )}
 
       <Stack
+        //@ts-ignore
         ref={carouselContainer}
         flex-wrap="nowrap"
         overflowX="visible"
@@ -113,6 +117,7 @@ const Carousel = (props: CarouselProps) => {
         listStyleType="none"
       >
         {Children.map(props.children, (child, index) =>
+          //@ts-ignore
           cloneElement(child, {
             index,
             isActive: index === currentItemIndex
