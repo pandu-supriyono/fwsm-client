@@ -111,7 +111,7 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
     id: number
     attributes: {
       name: string
-      subsector: {
+      subsector?: {
         data: {
           id: number
           attributes: {
@@ -232,26 +232,32 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
         </Heading>
         <SimpleGrid spacing={8} columns={[1, 2, 3]}>
           {organizations && organizations.length >= 1
-            ? organizations.map((organization) => (
-                <LinkBox key={`organization-${organization.id}`}>
-                  <AspectRatio ratio={16 / 9} mb={2}>
-                    <Box backgroundColor="gray" borderRadius={6}></Box>
-                  </AspectRatio>
-                  <Heading as="h3" size="md">
-                    <NextLink
-                      href={`/platform/organization/${organization.id}`}
-                      passHref
-                    >
-                      <LinkOverlay color="green.500" as={Link}>
-                        {organization.attributes.name}
-                      </LinkOverlay>
-                    </NextLink>
-                  </Heading>
-                  <Text>
-                    {organization?.attributes?.subsector?.data.attributes.name}
-                  </Text>
-                </LinkBox>
-              ))
+            ? organizations.map(
+                (organization) =>
+                  organization.attributes.subsector && (
+                    <LinkBox key={`organization-${organization.id}`}>
+                      <AspectRatio ratio={16 / 9} mb={2}>
+                        <Box backgroundColor="gray" borderRadius={6}></Box>
+                      </AspectRatio>
+                      <Heading as="h3" size="md">
+                        <NextLink
+                          href={`/platform/organization/${organization.id}`}
+                          passHref
+                        >
+                          <LinkOverlay color="green.500" as={Link}>
+                            {organization.attributes.name}
+                          </LinkOverlay>
+                        </NextLink>
+                      </Heading>
+                      <Text>
+                        {
+                          organization?.attributes?.subsector?.data.attributes
+                            .name
+                        }
+                      </Text>
+                    </LinkBox>
+                  )
+              )
             : null}
 
           <Box>
