@@ -87,7 +87,11 @@ const ThemePage: NextPage<ThemePageProps> = (props) => {
                 <SectorOverviewItem
                   key={`sector-overview-${card.id}`}
                   title={card.title}
-                  href={`/themes/${card.sector.data.id}`}
+                  href={
+                    card.sector.data?.id
+                      ? `/themes/${card.sector.data.id}`
+                      : '/themes'
+                  }
                 >
                   {card.content}
                 </SectorOverviewItem>

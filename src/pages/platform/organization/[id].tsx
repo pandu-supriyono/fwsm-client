@@ -251,7 +251,6 @@ const OrganizationPage: NextPage<OrganizationPageProps> = (props) => {
 
 function CompanyImages(props: { images: Image[] }) {
   const { images } = props
-  console.log(images)
   return (
     <Box overflowX="hidden" mt={10}>
       <Container>
@@ -301,8 +300,6 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
         process.env.NEXT_PUBLIC_API_URL + '/organizations/' + id + '?' + query
       )
       .then((res) => res.data)
-
-    console.dir(data, { depth: null })
 
     return {
       props: {
