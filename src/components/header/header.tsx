@@ -14,6 +14,8 @@ import {
 import NextLink from 'next/link'
 import NextImage from 'next/image'
 import { GiHamburgerMenu } from 'react-icons/gi'
+import { FaLinkedinIn, FaTwitter } from 'react-icons/fa'
+import { AiFillInstagram } from 'react-icons/ai'
 import { useToggleVisible } from '../../hooks/use-toggle'
 
 interface FwsmHeaderProps
@@ -65,6 +67,7 @@ export function FwsmHeader(props: FwsmHeaderProps) {
       borderColor="gray.200"
       borderStyle="solid"
       borderBottomWidth={1}
+      mb={[8, null, '4rem']}
     >
       <Container>
         <Stack
@@ -112,7 +115,7 @@ export function FwsmHeader(props: FwsmHeaderProps) {
                   lg: 'flex'
                 }}
               >
-                <FwsmListItem href="/sectors">Themes</FwsmListItem>
+                <FwsmListItem href="/themes">Themes</FwsmListItem>
                 <FwsmListItem href="/platform">Platform</FwsmListItem>
                 <FwsmListItem href="/about">About</FwsmListItem>
                 <FwsmListItem href="/highlighted">Highlighted</FwsmListItem>
@@ -129,8 +132,9 @@ export function FwsmHeader(props: FwsmHeaderProps) {
               width="100%"
               spacing={2}
             >
+              <FwsmSocials />
               <NextLink href="/sign-in" passHref>
-                <Button as={Link} variant="ghost" textAlign="center">
+                <Button as="a" variant="ghost" textAlign="center">
                   Sign in
                 </Button>
               </NextLink>
@@ -144,5 +148,42 @@ export function FwsmHeader(props: FwsmHeaderProps) {
         </Stack>
       </Container>
     </Box>
+  )
+}
+
+function FwsmSocials() {
+  return (
+    <HStack spacing={5} display={{ base: 'none', md: 'flex' }} mr={2}>
+      <Link color="gray.500" href="https://twitter.com/in_me20">
+        <Icon
+          as={FaTwitter}
+          display="block"
+          transition="color 0.2s"
+          w="5"
+          h="5"
+          _hover={{ color: 'gray.800' }}
+        />
+      </Link>
+      <Link color="gray.500" href="https://www.instagram.com/inme_magazine/">
+        <Icon
+          as={AiFillInstagram}
+          display="block"
+          transition="color 0.2s"
+          w="5"
+          h="5"
+          _hover={{ color: 'gray.800' }}
+        />
+      </Link>
+      <Link color="gray.500" href="https://nl.linkedin.com/company/in-me">
+        <Icon
+          as={FaLinkedinIn}
+          display="block"
+          transition="color 0.2s"
+          w="5"
+          h="5"
+          _hover={{ color: 'gray.800' }}
+        />
+      </Link>
+    </HStack>
   )
 }

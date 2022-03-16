@@ -7,20 +7,23 @@ export interface FwsmHeadProps {
   children?: ReactNode
 }
 
-const DEFAULT_TILE = 'Food Waste Solution Map'
+const DEFAULT_TITLE = 'Food Waste Solution Map'
 const DEFAULT_DESCRIPTION =
   'Make food waste a thing of the past -- join our network of changemakers in government, non-profits and business and make a difference together.'
 
 export function FwsmHead(props: FwsmHeadProps) {
   const {
-    title = DEFAULT_TILE,
+    title = DEFAULT_TITLE,
     description = DEFAULT_DESCRIPTION,
     children
   } = props
 
+  const titleWithWebsiteName =
+    title === DEFAULT_TITLE ? title : title + ' - ' + DEFAULT_TITLE
+
   return (
     <Head>
-      <title>{title}</title>
+      <title>{titleWithWebsiteName}</title>
       <meta name="description" content={description} />
       <link rel="icon" href="/favicon.ico" />
       {children}

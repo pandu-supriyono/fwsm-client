@@ -9,5 +9,8 @@ const Container = {
 export const theme = extendTheme({
   components: {
     Container
+  },
+  fonts: {
+    heading: 'Beatnik SF'
   }
 })

@@ -1,4 +1,5 @@
 import { ReactNode } from 'react'
+import { FwsmFooter } from '../footer'
 import { FwsmHead, FwsmHeadProps } from '../head'
 import { FwsmHeader } from '../header'
 
@@ -13,6 +14,7 @@ export function FwsmTemplate(props: FwsmTemplateProps) {
       <FwsmHead title={title} description={description} />
       <FwsmHeader />
       <main id="main-content">{children}</main>
+      <FwsmFooter />
     </>
   )
 }
