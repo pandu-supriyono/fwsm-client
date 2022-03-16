@@ -130,7 +130,7 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
   const [query, setQuery] = useState('')
 
   const { data: organizations } = useQuery<Organization[]>(
-    ['organizationSpotlight', query],
+    ['highlightedOrganizations', query],
     () => axios(baseUrl + query).then((res) => res.data.data)
   )
 
@@ -144,6 +144,7 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
               start: 0,
               limit: 2
             },
+            sort: ['createdAt:desc'],
             populate: ['subsector']
           })
       )
@@ -156,6 +157,7 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
               start: 0,
               limit: 2
             },
+            sort: ['createdAt:desc'],
             populate: ['subsector'],
             filters: {
               subsector: {
@@ -236,7 +238,10 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
                     <Box backgroundColor="gray" borderRadius={6}></Box>
                   </AspectRatio>
                   <Heading as="h3" size="md">
-                    <NextLink href="/" passHref>
+                    <NextLink
+                      href={`/platform/organization/${organization.id}`}
+                      passHref
+                    >
                       <LinkOverlay color="green.500" as={Link}>
                         {organization.attributes.name}
                       </LinkOverlay>

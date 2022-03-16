@@ -7,6 +7,7 @@ import {
   Grid,
   GridItem,
   Heading,
+  HStack,
   Image,
   Link,
   Text,
@@ -16,10 +17,10 @@ import NextLink from 'next/link'
 import { GetServerSideProps, NextPage } from 'next'
 import { FwsmTemplate } from '../../../components/template'
 import qs from 'qs'
-import ReactMarkdown from 'react-markdown'
-import ChakraUIRenderer from 'chakra-ui-markdown-renderer'
 import { ReactNode } from 'react'
 import * as dateFns from 'date-fns'
+import { FwsmMarkdown } from '../../../components/markdown'
+import Carousel from '../../../components/carousel/carousel'
 
 interface Sector {
   id: number
@@ -34,6 +35,22 @@ interface Subsector {
     name: string
     sector: {
       data: Sector
+    }
+  }
+}
+
+interface Image {
+  id: number
+  attributes: {
+    name: string
+    url: string
+    formats: {
+      thumbnail: {
+        url: string
+      }
+      small: {
+        url: string
+      }
     }
   }
 }
@@ -62,6 +79,9 @@ interface Organization {
           url: string
         }
       }
+    }
+    images?: {
+      data: Image[]
     }
     createdAt: string
     updatedAt: string
@@ -206,42 +226,54 @@ const OrganizationPage: NextPage<OrganizationPageProps> = (props) => {
         </Container>
       </Box>
 
-      <Container>
-        {organization.attributes.description && (
-          <Box
-            maxW="80ch"
-            mb={{
-              base: 10,
-              lg: '4rem'
-            }}
-          >
-            <ReactMarkdown
-              components={ChakraUIRenderer({
-                h2: (props) => {
-                  const { children } = props
-                  return (
-                    <Heading as="h2" size="lg" mt={8} mb={2}>
-                      {children}
-                    </Heading>
-                  )
-                },
-                ul: (props) => {
-                  const { children } = props
-                  return <UnorderedList mb={2}>{children}</UnorderedList>
-                }
-              })}
-              skipHtml
-            >
-              {organization.attributes.description}
-            </ReactMarkdown>
-          </Box>
-        )}
-      </Container>
+      <Box
+        mb={{
+          base: 10,
+          lg: '4rem'
+        }}
+      >
+        <Container>
+          {organization.attributes.description && (
+            <Box maxW="80ch">
+              <FwsmMarkdown>{organization.attributes.description}</FwsmMarkdown>
+            </Box>
+          )}
+        </Container>
+
+        {organization.attributes.images &&
+        organization.attributes.images.data?.length > 0 ? (
+          <CompanyImages images={organization.attributes.images.data} />
+        ) : null}
+      </Box>
     </FwsmTemplate>
   )
 }
 
-export function CompanyDetail(props: { title: string; children: ReactNode }) {
+function CompanyImages(props: { images: Image[] }) {
+  const { images } = props
+  console.log(images)
+  return (
+    <Box overflowX="hidden" mt={10}>
+      <Container>
+        <Carousel>
+          {images.map((image) => (
+            <Image
+              maxW={{
+                base: '100%',
+                lg: '60ch'
+              }}
+              objectFit="cover"
+              key={`profile-img-${image.id}`}
+              src={image.attributes.url}
+            />
+          ))}
+        </Carousel>
+      </Container>
+    </Box>
+  )
+}
+
+function CompanyDetail(props: { title: string; children: ReactNode }) {
   const { children, title } = props
   return (
     <Box
@@ -262,13 +294,15 @@ export const getServerSideProps: GetServerSideProps = async (ctx) => {
 
   try {
     const query = qs.stringify({
-      populate: ['subsector.sector', 'logo', 'address']
+      populate: ['subsector.sector', 'logo', 'address', 'images']
     })
     const { data } = await axios
       .get(
         process.env.NEXT_PUBLIC_API_URL + '/organizations/' + id + '?' + query
       )
       .then((res) => res.data)
+
+    console.dir(data, { depth: null })
 
     return {
       props: {
