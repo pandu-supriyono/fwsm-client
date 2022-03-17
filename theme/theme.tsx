@@ -11,6 +11,7 @@ export const theme = extendTheme({
     Container
   },
   fonts: {
-    heading: 'Beatnik SF'
+    heading: 'Beatnik SF, sans-serif',
+    body: 'Varela Round, sans-serif'
   }
 })

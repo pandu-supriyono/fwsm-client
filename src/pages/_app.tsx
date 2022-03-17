@@ -1,4 +1,5 @@
 import type { AppProps } from 'next/app'
+import '@fontsource/varela-round'
 import { Fonts, theme } from '../../theme'
 import { ChakraProvider } from '@chakra-ui/react'
 import { QueryClient, QueryClientProvider } from 'react-query'

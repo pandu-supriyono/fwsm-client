@@ -12,6 +12,7 @@ import {
   LinkBox,
   LinkOverlay,
   Modal,
+  Image,
   ModalOverlay,
   ModalContent,
   ModalHeader,
@@ -106,22 +107,46 @@ function Hero() {
   )
 }
 
-function HighlightedOrganizations(props: { sectors: Sector[] }) {
-  interface Organization {
-    id: number
-    attributes: {
-      name: string
-      subsector?: {
-        data: {
-          id: number
-          attributes: {
-            name: string
+interface Organization {
+  id: number
+  attributes: {
+    name: string
+    subsector?: {
+      data: {
+        id: number
+        attributes: {
+          name: string
+        }
+      }
+    }
+    logo: {
+      data?: {
+        attributes: {
+          url: string
+          formats: {
+            thumbnail: {
+              url: string
+            }
+          }
+        }
+      }
+    }
+    featuredImage: {
+      data?: {
+        attributes: {
+          url: string
+          formats: {
+            thumbnail: {
+              url: string
+            }
           }
         }
       }
     }
   }
+}
 
+function HighlightedOrganizations(props: { sectors: Sector[] }) {
   const { sectors } = props
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL + '/organizations'
@@ -145,7 +170,7 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
               limit: 2
             },
             sort: ['createdAt:desc'],
-            populate: ['subsector']
+            populate: ['subsector', 'featuredImage', 'logo']
           })
       )
     } else {
@@ -158,7 +183,7 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
               limit: 2
             },
             sort: ['createdAt:desc'],
-            populate: ['subsector'],
+            populate: ['subsector', 'featuredImage', 'logo'],
             filters: {
               subsector: {
                 sector: {
@@ -237,7 +262,7 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
                   organization.attributes.subsector && (
                     <LinkBox key={`organization-${organization.id}`}>
                       <AspectRatio ratio={16 / 9} mb={2}>
-                        <Box backgroundColor="gray" borderRadius={6}></Box>
+                        <FeaturedImage {...organization} />
                       </AspectRatio>
                       <Heading as="h3" size="md">
                         <NextLink
@@ -277,6 +302,25 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
       </Box>
     </Container>
   )
+}
+
+function FeaturedImage(props: Organization) {
+  if (props.attributes.featuredImage.data) {
+    return (
+      <Image
+        src={
+          props.attributes.featuredImage.data.attributes.formats.thumbnail.url
+        }
+        borderRadius={6}
+      />
+    )
+  } else {
+    return (
+      <Box backgroundColor="gray.200" borderRadius={6}>
+        <Text color="gray.500">No image available</Text>
+      </Box>
+    )
+  }
 }
 
 function BlurbSection() {
