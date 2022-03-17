@@ -114,7 +114,10 @@ const OrganizationPage: NextPage<OrganizationPageProps> = (props) => {
           >
             <GridItem
               as={Box}
-              maxW="80ch"
+              maxW={{
+                base: '100%',
+                lg: '75%'
+              }}
               pb={[8, null, '7ch']}
               mb={{
                 base: 0,
