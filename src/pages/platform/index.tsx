@@ -1,5 +1,4 @@
 import { ArrowForwardIcon } from '@chakra-ui/icons'
-import qs from 'qs'
 import {
   Box,
   Grid,
@@ -21,9 +20,16 @@ import {
 } from '@chakra-ui/react'
 import { GetStaticProps, NextPage } from 'next'
 import NextLink from 'next/link'
-import { Dispatch, ReactNode, SetStateAction, useEffect, useState } from 'react'
+import { Dispatch, SetStateAction, useEffect, useState } from 'react'
+import {
+  getSectors,
+  Sector,
+  getSubsectors,
+  Subsector,
+  getOrganizations,
+  OrganizationWithSectorData
+} from '../../endpoints'
 import { FwsmTemplate } from '../../components/template'
-import axios from 'axios'
 import { useQuery } from 'react-query'
 import {
   FwsmPageHeader,
@@ -31,69 +37,19 @@ import {
   FwsmPageHeaderTitle
 } from '../../components/page-header'
 
-interface SectorResponse {
-  id: number
-  attributes: {
-    name: string
-  }
-}
-
-interface SubsectorResponse {
-  id: number
-  attributes: {
-    name: string
-    sector: {
-      data: SectorResponse
-    }
-  }
-}
-
-interface Sector {
-  id: number
-  attributes: {
-    name: string
-    subsectors: {
-      id: number
-      attributes: {
-        name: string
-      }
-    }[]
-  }
-}
-
-type Sectors = Sector[]
-
-type Subsectors = SubsectorResponse[]
-
-interface Organization {
-  id: number
-  attributes: {
-    name: string
-    shortDescription?: string
-    subsector: {
-      data: {
-        id: number
-        attributes: {
-          name: string
-        }
-      }
-    }
-  }
-}
-
 interface PlatformPageProps {
-  sectors: Sectors
-  subsectors: Subsectors
+  sectors: Sector[]
+  subsectors: Subsector[]
 }
 
-const getSectorNameFromId = (id: string, sectors: Sectors) => {
+const getSectorNameFromId = (id: string, sectors: Sector[]) => {
   return (
     sectors.find((sector) => String(sector.id) == id)?.attributes.name ||
     'All sectors'
   )
 }
 
-const getSubsectorNameFromId = (id: string, subsectors: Subsectors) => {
+const getSubsectorNameFromId = (id: string, subsectors: Subsector[]) => {
   return (
     subsectors.find((subsector) => String(subsector.id) == id)?.attributes
       .name || 'All subsectors'
@@ -122,51 +78,19 @@ function PlatformPageContent(props: PlatformPageProps) {
   const { sectors, subsectors } = props
   const [sectorFilter, setSectorFilter] = useState('all')
   const [subsectorFilter, setSubsectorFilter] = useState<string | number>('all')
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL + '/organizations'
-  const [query, setQuery] = useState('')
-  const { data: organizations } = useQuery<Organization[]>(
-    ['organizations', query],
-    () => axios(baseUrl + query).then((res) => res.data.data)
+  const { data: organizations } = useQuery(
+    ['organizations', sectorFilter, subsectorFilter],
+    () =>
+      getOrganizations({
+        sectorId: sectorFilter === 'all' ? undefined : Number(sectorFilter),
+        subsectorId:
+          subsectorFilter === 'all' ? undefined : Number(subsectorFilter)
+      })
   )
 
   useEffect(() => {
     setSubsectorFilter(() => 'all')
   }, [sectorFilter])
-
-  useEffect(() => {
-    if (subsectorFilter !== 'all') {
-      const query = qs.stringify({
-        populate: 'subsector',
-        filters: {
-          subsector: {
-            id: {
-              $eq: subsectorFilter
-            }
-          }
-        }
-      })
-      setQuery(() => '?' + query)
-    } else if (sectorFilter === 'all') {
-      const query = qs.stringify({
-        populate: 'subsector'
-      })
-      setQuery(() => '?' + query)
-    } else {
-      const query = qs.stringify({
-        populate: 'subsector',
-        filters: {
-          subsector: {
-            sector: {
-              id: {
-                $eq: sectorFilter
-              }
-            }
-          }
-        }
-      })
-      setQuery(() => '?' + query)
-    }
-  }, [sectorFilter, subsectorFilter])
 
   const subsectorOptions =
     sectorFilter === 'all'
@@ -260,8 +184,8 @@ function PlatformPageContent(props: PlatformPageProps) {
               </LinkBox>
               <UnorderedList listStyleType="none" ml={0}>
                 {organizations &&
-                  organizations.length > 0 &&
-                  organizations.map((organization) => (
+                  organizations.data.length > 0 &&
+                  organizations.data.map((organization) => (
                     <OrganizationResult
                       key={`result-${organization.id}`}
                       {...organization}
@@ -276,7 +200,7 @@ function PlatformPageContent(props: PlatformPageProps) {
   )
 }
 
-function OrganizationResult(props: Organization) {
+function OrganizationResult(props: OrganizationWithSectorData) {
   const url = '/platform/organization/' + props.id
   return (
     <LinkBox
@@ -302,7 +226,7 @@ function OrganizationResult(props: Organization) {
 }
 
 function SectorFilters(props: {
-  sectors: Sectors
+  sectors: Sector[]
   sectorFilter: string
   setSectorFilter: Dispatch<SetStateAction<string>>
 }) {
@@ -369,40 +293,40 @@ function SectorFilter(props: RadioProps) {
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const { data: sectors }: { data: SectorResponse[] } = await axios(
-    process.env.NEXT_PUBLIC_API_URL + '/sectors'
-  ).then((res) => res.data)
+  const sectors = await getSectors()
+  const subsectors = await getSubsectors()
 
-  const { data: subsectors }: { data: SubsectorResponse[] } = await axios(
-    process.env.NEXT_PUBLIC_API_URL + '/subsectors?populate[0]=sector'
-  ).then((res) => res.data)
-
-  const sectorsWithSubsectors = sectors.reduce((acc: Sector[], current) => {
-    const matchingSubsectors = subsectors
-      .filter((subsector) => subsector.attributes.sector.data.id === current.id)
-      .map((subsector) => {
-        return {
-          id: subsector.id,
-          attributes: {
-            name: subsector.attributes.name
+  const sectorsWithSubsectors = sectors.data.reduce(
+    (acc: Sector[], current) => {
+      const matchingSubsectors = subsectors.data
+        .filter(
+          (subsector) => subsector.attributes.sector.data.id === current.id
+        )
+        .map((subsector) => {
+          return {
+            id: subsector.id,
+            attributes: {
+              name: subsector.attributes.name
+            }
           }
+        })
+      const newCurrent = {
+        ...current,
+        attributes: {
+          ...current.attributes,
+          subsectors: matchingSubsectors
         }
-      })
-    const newCurrent = {
-      ...current,
-      attributes: {
-        ...current.attributes,
-        subsectors: matchingSubsectors
       }
-    }
 
-    return [...acc, newCurrent]
-  }, [])
+      return [...acc, newCurrent]
+    },
+    []
+  )
 
   return {
     props: {
       sectors: sectorsWithSubsectors,
-      subsectors: subsectors
+      subsectors: subsectors.data
     }
   }
 }

@@ -14,57 +14,32 @@ import NextLink from 'next/link'
 import { ArrowForwardIcon } from '@chakra-ui/icons'
 import { FwsmTemplate } from '../../components/template'
 import { ReactNode } from 'react'
-import axios from 'axios'
 import { FwsmMarkdown } from '../../components/markdown'
 import {
   FwsmPageHeader,
   FwsmPageHeaderContainer,
   FwsmPageHeaderTitle
 } from '../../components/page-header'
-import qs from 'qs'
+import { getThemesPageContent, ThemesPageContent } from '../../endpoints'
 
-interface ThemePageData {
-  attributes: {
-    title: string
-    introduction: string
-    content: string
-    sectorOverview: {
-      header: {
-        heading: string
-        description: string
-      }
-      cards: {
-        id: number
-        title: string
-        content: string
-        sector: {
-          data: {
-            id: number
-          }
-        }
-      }[]
-    }
-  }
+interface ThemesPageProps {
+  content: ThemesPageContent
 }
 
-interface ThemePageProps {
-  themePageData: ThemePageData
-}
-
-const ThemePage: NextPage<ThemePageProps> = (props) => {
-  const { themePageData } = props
+const ThemesPage: NextPage<ThemesPageProps> = (props) => {
+  const { content } = props
 
   return (
-    <FwsmTemplate title={themePageData.attributes.title}>
+    <FwsmTemplate title={content.attributes.title}>
       <FwsmPageHeader>
         <FwsmPageHeaderContainer>
           <FwsmPageHeaderTitle>Themes</FwsmPageHeaderTitle>
-          <Text fontSize="xl">{themePageData.attributes.introduction}</Text>
+          <Text fontSize="xl">{content.attributes.introduction}</Text>
         </FwsmPageHeaderContainer>
       </FwsmPageHeader>
       <Container>
         <Box maxW="80ch">
-          <FwsmMarkdown>{themePageData.attributes.content}</FwsmMarkdown>
+          <FwsmMarkdown>{content.attributes.content}</FwsmMarkdown>
         </Box>
       </Container>
       <Box
@@ -74,15 +49,15 @@ const ThemePage: NextPage<ThemePageProps> = (props) => {
       >
         <Container maxW="80ch">
           <Heading as="h2" color="white" size="2xl" textAlign="center" mb={8}>
-            {themePageData.attributes.sectorOverview.header.heading}
+            {content.attributes.sectorOverview.header.heading}
           </Heading>
           <Text color="white" mb={10} textAlign="center" fontSize="lg">
-            {themePageData.attributes.sectorOverview.header.description}
+            {content.attributes.sectorOverview.header.description}
           </Text>
         </Container>
         <Container>
           <SimpleGrid columns={[1, 1, 3]} spacing={8}>
-            {themePageData.attributes.sectorOverview.cards.map((card) => {
+            {content.attributes.sectorOverview.cards.map((card) => {
               return (
                 <SectorOverviewItem
                   key={`sector-overview-${card.id}`}
@@ -130,27 +105,11 @@ function SectorOverviewItem(props: {
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const query = qs.stringify(
-    {
-      populate: [
-        'sectorOverview',
-        'sectorOverview.cards',
-        'sectorOverview.cards.sector',
-        'sectorOverview.header'
-      ]
-    },
-    { encodeValuesOnly: true }
-  )
-
-  const { data } = await axios(
-    process.env.NEXT_PUBLIC_API_URL + '/theme?' + query
-  ).then((res) => res.data)
-
   return {
     props: {
-      themePageData: data
+      content: await getThemesPageContent().then((res) => res.data)
     }
   }
 }
 
-export default ThemePage
+export default ThemesPage

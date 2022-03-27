@@ -1,5 +1,4 @@
 import { Box, Container, Text } from '@chakra-ui/react'
-import axios from 'axios'
 import { GetStaticProps, NextPage } from 'next'
 import { FwsmMarkdown } from '../components/markdown'
 import {
@@ -8,31 +7,21 @@ import {
   FwsmPageHeaderTitle
 } from '../components/page-header'
 import { FwsmTemplate } from '../components/template'
-
-interface AboutPageData {
-  id: number
-  attributes: {
-    title: string
-    introduction: string
-    content: string
-  }
-}
+import { AboutPageContent, getAboutPageContent } from '../endpoints'
 
 interface AboutPageProps {
-  aboutPageData: AboutPageData
+  content: AboutPageContent
 }
 
 const AboutPage: NextPage<AboutPageProps> = (props) => {
-  const { aboutPageData } = props
+  const { content } = props
 
   return (
-    <FwsmTemplate title={aboutPageData.attributes.title}>
+    <FwsmTemplate title={content.attributes.title}>
       <FwsmPageHeader>
         <FwsmPageHeaderContainer>
-          <FwsmPageHeaderTitle>
-            {aboutPageData.attributes.title}
-          </FwsmPageHeaderTitle>
-          <Text fontSize="xl">{aboutPageData.attributes.introduction}</Text>
+          <FwsmPageHeaderTitle>{content.attributes.title}</FwsmPageHeaderTitle>
+          <Text fontSize="xl">{content.attributes.introduction}</Text>
         </FwsmPageHeaderContainer>
       </FwsmPageHeader>
       <Container
@@ -42,7 +31,7 @@ const AboutPage: NextPage<AboutPageProps> = (props) => {
         }}
       >
         <Box maxW="80ch">
-          <FwsmMarkdown>{aboutPageData.attributes.content}</FwsmMarkdown>
+          <FwsmMarkdown>{content.attributes.content}</FwsmMarkdown>
         </Box>
       </Container>
     </FwsmTemplate>
@@ -50,13 +39,11 @@ const AboutPage: NextPage<AboutPageProps> = (props) => {
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const { data: aboutPageData } = await axios(
-    process.env.NEXT_PUBLIC_API_URL + '/about'
-  ).then((res) => res.data)
+  const content = await getAboutPageContent()
 
   return {
     props: {
-      aboutPageData
+      content: content.data
     }
   }
 }

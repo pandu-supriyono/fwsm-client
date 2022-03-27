@@ -1,4 +1,3 @@
-import axios from 'axios'
 import {
   AspectRatio,
   Box,
@@ -7,89 +6,22 @@ import {
   Grid,
   GridItem,
   Heading,
-  HStack,
   Image,
   Link,
-  Text,
-  UnorderedList
+  Text
 } from '@chakra-ui/react'
 import NextLink from 'next/link'
 import { GetServerSideProps, NextPage } from 'next'
 import { FwsmTemplate } from '../../../components/template'
-import qs from 'qs'
 import { ReactNode } from 'react'
 import * as dateFns from 'date-fns'
 import { FwsmMarkdown } from '../../../components/markdown'
 import Carousel from '../../../components/carousel/carousel'
-
-interface Sector {
-  id: number
-  attributes: {
-    name: string
-  }
-}
-
-interface Subsector {
-  id: number
-  attributes: {
-    name: string
-    sector: {
-      data: Sector
-    }
-  }
-}
-
-interface Image {
-  id: number
-  attributes: {
-    name: string
-    url: string
-    formats: {
-      thumbnail: {
-        url: string
-      }
-      small: {
-        url: string
-      }
-    }
-  }
-}
-
-interface Organization {
-  id: number
-  attributes: {
-    name: string
-    subsector: {
-      data: Subsector
-    }
-    shortDescription: string
-    description?: string
-    email: string
-    address: {
-      country: string
-      city: string
-      province: string
-      address: string
-      postcode: string
-    }
-    logo?: {
-      data: {
-        id: number
-        attributes: {
-          url: string
-        }
-      }
-    }
-    images?: {
-      data: Image[]
-    }
-    createdAt: string
-    updatedAt: string
-  }
-}
+import { getOrganization, OrganizationProfile } from '../../../endpoints'
+import { Image as OrganizationImage } from '../../../endpoints/common'
 
 interface OrganizationPageProps {
-  organization: Organization
+  organization: OrganizationProfile
 }
 
 const OrganizationPage: NextPage<OrganizationPageProps> = (props) => {
@@ -133,10 +65,18 @@ const OrganizationPage: NextPage<OrganizationPageProps> = (props) => {
                   mb={4}
                   borderStyle="solid"
                 >
-                  <Image
-                    src={organization.attributes.logo.data.attributes.url}
-                    alt={`The logo of ${organization.attributes.name}`}
-                  />
+                  {organization.attributes.logo.data ? (
+                    <Image
+                      src={organization.attributes.logo.data.attributes.url}
+                      alt={`The logo of ${organization.attributes.name}`}
+                    />
+                  ) : (
+                    <Box>
+                      <Text color="gray.500" textAlign="center">
+                        No logo available
+                      </Text>
+                    </Box>
+                  )}
                 </AspectRatio>
               )}
 
@@ -243,7 +183,7 @@ const OrganizationPage: NextPage<OrganizationPageProps> = (props) => {
           )}
         </Container>
 
-        {organization.attributes.images &&
+        {organization.attributes.images.data &&
         organization.attributes.images.data?.length > 0 ? (
           <CompanyImages images={organization.attributes.images.data} />
         ) : null}
@@ -252,7 +192,7 @@ const OrganizationPage: NextPage<OrganizationPageProps> = (props) => {
   )
 }
 
-function CompanyImages(props: { images: Image[] }) {
+function CompanyImages(props: { images: OrganizationImage[] }) {
   const { images } = props
   return (
     <Box overflowX="hidden" mt={10}>
@@ -292,21 +232,14 @@ function CompanyDetail(props: { title: string; children: ReactNode }) {
 }
 
 export const getServerSideProps: GetServerSideProps = async (ctx) => {
-  const id = ctx.params?.id
+  const id = Number(ctx.params?.id)
 
   try {
-    const query = qs.stringify({
-      populate: ['subsector.sector', 'logo', 'address', 'images']
-    })
-    const { data } = await axios
-      .get(
-        process.env.NEXT_PUBLIC_API_URL + '/organizations/' + id + '?' + query
-      )
-      .then((res) => res.data)
+    const organization = await getOrganization(id)
 
     return {
       props: {
-        organization: data as Organization
+        organization: organization.data
       }
     }
   } catch (err) {

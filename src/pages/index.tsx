@@ -25,36 +25,37 @@ import {
 } from '@chakra-ui/react'
 import NextLink from 'next/link'
 import { ChevronDownIcon, ArrowForwardIcon } from '@chakra-ui/icons'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useState } from 'react'
 import { useQuery } from 'react-query'
-import axios from 'axios'
-import qs from 'qs'
-
-interface Sector {
-  id: number
-  attributes: {
-    name: string
-  }
-}
+import {
+  getHighlightedOrganizations,
+  getSectors,
+  HighlightedOrganization,
+  sectionHeader,
+  Sector,
+  getHomePageContent,
+  HomePageContent
+} from '../endpoints'
 
 interface HomeProps {
   sectors: Sector[]
+  content: HomePageContent
 }
 
 const Home: NextPage<HomeProps> = (props) => {
-  const { sectors } = props
+  const { sectors, content } = props
 
   return (
     <FwsmTemplate>
-      <Hero />
+      <Hero {...content} />
       <HighlightedOrganizations sectors={sectors} />
-      <BlurbSection />
-      <SectorOverview />
+      <BlurbSection {...content} />
+      <SectorOverviewBlurb {...content} />
     </FwsmTemplate>
   )
 }
 
-function Hero() {
+function Hero(props: HomePageContent) {
   return (
     <Box
       pt="2rem"
@@ -80,9 +81,7 @@ function Hero() {
           </Box>
         </Heading>
         <Text fontSize="xl" color="gray.500" mb={8}>
-          Food Waste Solution map is a platform to discover and connect with
-          institutions, organizations and companies that work towards ending
-          food waste, making it easy to join forces and create an impact.
+          {props.attributes.lead}
         </Text>
         <Stack
           justifyContent="center"
@@ -107,96 +106,19 @@ function Hero() {
   )
 }
 
-interface Organization {
-  id: number
-  attributes: {
-    name: string
-    subsector?: {
-      data: {
-        id: number
-        attributes: {
-          name: string
-        }
-      }
-    }
-    logo: {
-      data?: {
-        attributes: {
-          url: string
-          formats: {
-            thumbnail: {
-              url: string
-            }
-          }
-        }
-      }
-    }
-    featuredImage: {
-      data?: {
-        attributes: {
-          url: string
-          formats: {
-            thumbnail: {
-              url: string
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
 function HighlightedOrganizations(props: { sectors: Sector[] }) {
   const { sectors } = props
 
-  const baseUrl = process.env.NEXT_PUBLIC_API_URL + '/organizations'
   const [sectorFilter, setSectorFilter] = useState<Sector>(sectors[0])
   const { isOpen, onOpen, onClose } = useDisclosure()
-  const [query, setQuery] = useState('')
 
-  const { data: organizations } = useQuery<Organization[]>(
-    ['highlightedOrganizations', query],
-    () => axios(baseUrl + query).then((res) => res.data.data)
+  const { data: organizations } = useQuery(
+    ['highlightedOrganizations', sectorFilter.id],
+    () =>
+      getHighlightedOrganizations(
+        sectorFilter.id === 0 ? undefined : sectorFilter.id
+      ).then((data) => data.data)
   )
-
-  useEffect(() => {
-    if (sectorFilter.id === 0) {
-      setQuery(
-        () =>
-          '?' +
-          qs.stringify({
-            pagination: {
-              start: 0,
-              limit: 2
-            },
-            sort: ['createdAt:desc'],
-            populate: ['subsector', 'featuredImage', 'logo']
-          })
-      )
-    } else {
-      setQuery(
-        () =>
-          '?' +
-          qs.stringify({
-            pagination: {
-              start: 0,
-              limit: 2
-            },
-            sort: ['createdAt:desc'],
-            populate: ['subsector', 'featuredImage', 'logo'],
-            filters: {
-              subsector: {
-                sector: {
-                  id: {
-                    $eq: sectorFilter.id
-                  }
-                }
-              }
-            }
-          })
-      )
-    }
-  }, [sectorFilter])
 
   return (
     <Container mb={10}>
@@ -214,7 +136,11 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
           </Button>
           <Modal isOpen={isOpen} onClose={onClose}>
             <ModalOverlay />
-            <ModalContent>
+            <ModalContent
+              maxW={{
+                lg: '800px'
+              }}
+            >
               <ModalHeader>Discover companies by sector</ModalHeader>
               <ModalCloseButton />
               <ModalBody>
@@ -304,7 +230,7 @@ function HighlightedOrganizations(props: { sectors: Sector[] }) {
   )
 }
 
-function FeaturedImage(props: Organization) {
+function FeaturedImage(props: HighlightedOrganization) {
   if (props.attributes.featuredImage.data) {
     return (
       <Image
@@ -323,21 +249,11 @@ function FeaturedImage(props: Organization) {
   }
 }
 
-function BlurbSection() {
+function BlurbSection(props: HomePageContent) {
   return (
     <Box backgroundColor="gray.100" py={[10, null, '5rem']} pb={10}>
       <Container maxW="80ch">
-        <Text textAlign="center" color="gray.500" mb={6}>
-          Opportunities from the Food Waste Solution Map
-        </Text>
-        <Heading as="h2" size="2xl" textAlign="center" mb={8}>
-          Create the solution together
-        </Heading>
-        <Text maxW="60ch" textAlign="center" mx="auto" fontSize="lg" mb={8}>
-          Join initiatives and share innovations across the entire production
-          chain -- not only are they necessary, but offer benefits for business,
-          consumer and environment.
-        </Text>
+        <SectionHeader {...props.attributes.functionalityHighlight.header} />
       </Container>
       <Container>
         <SimpleGrid
@@ -347,18 +263,15 @@ function BlurbSection() {
           }}
           spacing={8}
         >
-          <BlurbItem heading="Make your product visible" step={1}>
-            Create a detailed profile page for your organization. We&apos;ll
-            make sure that your profile is searchable and filterable for others.
-          </BlurbItem>
-          <BlurbItem heading="Find and connect" step={2}>
-            Search and filter other organizations and initiatives that are
-            registered on our network based on sector and/or region.
-          </BlurbItem>
-          <BlurbItem heading="Join forces and make impact" step={3}>
-            Found a potential partner? Contact them and start working together
-            towards a world without food waste.
-          </BlurbItem>
+          {props.attributes.functionalityHighlight.steps?.map((step) => (
+            <BlurbItem
+              key={`step-${step.id}`}
+              heading={step.heading}
+              step={step.stepNumber}
+            >
+              {step.content}
+            </BlurbItem>
+          ))}
         </SimpleGrid>
       </Container>
     </Box>
@@ -416,21 +329,27 @@ function BlurbItem(props: {
   )
 }
 
-function SectorOverview() {
+function SectionHeader(props: sectionHeader) {
+  return (
+    <>
+      <Text textAlign="center" color="gray.500" mb={6}>
+        {props.subtitle}
+      </Text>
+      <Heading as="h2" size="2xl" textAlign="center" mb={8}>
+        {props.heading}
+      </Heading>
+      <Text maxW="60ch" textAlign="center" mx="auto" fontSize="lg" mb={10}>
+        {props.description}
+      </Text>
+    </>
+  )
+}
+
+function SectorOverviewBlurb(props: HomePageContent) {
   return (
     <Box backgroundColor="gray.100" pb={12}>
       <Container maxW="80ch">
-        <Text textAlign="center" color="gray.500" mb={6}>
-          The sectors of the Food Waste Solution Map
-        </Text>
-        <Heading as="h2" size="2xl" textAlign="center" mb={8}>
-          The food chain in 5 sectors
-        </Heading>
-        <Text maxW="60ch" textAlign="center" mx="auto" fontSize="lg" mb={10}>
-          Food Waste Solution Map categorizes the food chain in 5 different
-          sectors. Search and find an organization that operates in a specific
-          sector or register your own.
-        </Text>
+        <SectionHeader {...props.attributes.sectorOverview.header} />
       </Container>
       <Container maxW="90ch">
         <UnorderedList listStyleType="none" ml={0}>
@@ -440,31 +359,15 @@ function SectorOverview() {
               lg: 2
             }}
           >
-            <SectionOverviewItem title="Production and post harvesting">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Accusantium, obcaecati molestiae veniam sequi laboriosam vitae
-              voluptas.
-            </SectionOverviewItem>
-            <SectionOverviewItem title="Processing">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Accusantium, obcaecati molestiae veniam sequi laboriosam vitae
-              voluptas.
-            </SectionOverviewItem>
-            <SectionOverviewItem title="Packaging, storage and ripening">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Accusantium, obcaecati molestiae veniam sequi laboriosam vitae
-              voluptas.
-            </SectionOverviewItem>
-            <SectionOverviewItem title="Distribution">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Accusantium, obcaecati molestiae veniam sequi laboriosam vitae
-              voluptas.
-            </SectionOverviewItem>
-            <SectionOverviewItem title="Retail">
-              Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-              Accusantium, obcaecati molestiae veniam sequi laboriosam vitae
-              voluptas.
-            </SectionOverviewItem>
+            {props.attributes.sectorOverview.cards?.map((card) => (
+              <SectionOverviewItem
+                key={`sector-card-${card.id}`}
+                title={card.title}
+                href={`/themes/${card.sector.data.id}`}
+              >
+                {card.content}
+              </SectionOverviewItem>
+            ))}
           </SimpleGrid>
         </UnorderedList>
       </Container>
@@ -512,9 +415,9 @@ function SectionOverviewItem(props: {
 }
 
 export const getStaticProps: GetStaticProps = async () => {
-  const { data: sectors } = await axios(
-    process.env.NEXT_PUBLIC_API_URL + '/sectors'
-  ).then((res) => res.data)
+  const sectors = await getSectors()
+
+  const homePageContent = await getHomePageContent()
 
   return {
     props: {
@@ -525,8 +428,9 @@ export const getStaticProps: GetStaticProps = async () => {
             name: 'All sectors'
           }
         },
-        ...sectors
-      ]
+        ...sectors.data
+      ],
+      content: homePageContent.data
     }
   }
 }

@@ -9,7 +9,6 @@ import {
   Text,
   UnorderedList
 } from '@chakra-ui/react'
-import axios from 'axios'
 import { GetStaticPaths, GetStaticProps, NextPage } from 'next'
 import {
   FwsmPageHeader,
@@ -17,24 +16,14 @@ import {
   FwsmPageHeaderTitle
 } from '../../components/page-header'
 import { FwsmTemplate } from '../../components/template'
-import qs from 'qs'
 import { FwsmMarkdown } from '../../components/markdown'
-
-interface Sector {
-  id: number
-  attributes: {
-    name: string
-    description?: string
-  }
-}
-
-interface Subsector {
-  id: number
-  attributes: {
-    name: string
-    description: string
-  }
-}
+import {
+  getSector,
+  getSectors,
+  getSubsectors,
+  Sector,
+  Subsector
+} from '../../endpoints'
 
 interface FwsmThemePageProps {
   sector: Sector
@@ -107,43 +96,26 @@ const FwsmThemePage: NextPage<FwsmThemePageProps> = (props) => {
 }
 
 export const getStaticProps: GetStaticProps = async (ctx) => {
-  const id = ctx.params?.id
+  const id = Number(ctx.params?.id)
 
-  const { data: sector } = await axios(
-    process.env.NEXT_PUBLIC_API_URL + '/sectors/' + id
-  ).then((res) => res.data)
+  const sector = await getSector(id)
 
-  const { data: subsectors } = await axios(
-    process.env.NEXT_PUBLIC_API_URL +
-      '/subsectors?' +
-      qs.stringify(
-        {
-          filters: {
-            sector: {
-              id: {
-                $eq: id
-              }
-            }
-          }
-        },
-        { encodeValuesOnly: true }
-      )
-  ).then((res) => res.data)
+  const subsectors = await getSubsectors({
+    sectorId: id
+  })
 
   return {
     props: {
-      sector,
-      subsectors
+      sector: sector.data,
+      subsectors: subsectors.data
     }
   }
 }
 
 export const getStaticPaths: GetStaticPaths = async () => {
-  const { data } = await axios(
-    process.env.NEXT_PUBLIC_API_URL + '/sectors'
-  ).then((res) => res.data)
+  const sectors = await getSectors()
 
-  const paths = data.map((sector: Sector) => ({
+  const paths = sectors.data.map((sector) => ({
     params: { id: String(sector.id) }
   }))
 
