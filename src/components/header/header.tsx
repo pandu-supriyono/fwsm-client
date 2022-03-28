@@ -1,4 +1,4 @@
-import { HTMLAttributes, PropsWithChildren, ReactNode, useState } from 'react'
+import { HTMLAttributes, PropsWithChildren, ReactNode } from 'react'
 import {
   Stack,
   Box,
@@ -17,6 +17,8 @@ import { GiHamburgerMenu } from 'react-icons/gi'
 import { FaLinkedinIn, FaTwitter } from 'react-icons/fa'
 import { AiFillInstagram } from 'react-icons/ai'
 import { useToggleVisible } from '../../hooks/use-toggle'
+import { useUser } from '../../hooks/use-user'
+import { useOrganization } from '../../hooks/use-organization'
 
 interface FwsmHeaderProps
   extends PropsWithChildren<HTMLAttributes<HTMLElement>> {}
@@ -59,6 +61,8 @@ const RESPONSIVE_STACK_DIRECTION: StackDirection = {
 
 export function FwsmHeader(props: FwsmHeaderProps) {
   const toggle = useToggleVisible()
+  const { user, signOut } = useUser()
+  const { organization } = useOrganization()
 
   return (
     <Box
@@ -133,16 +137,36 @@ export function FwsmHeader(props: FwsmHeaderProps) {
               spacing={2}
             >
               <FwsmSocials />
-              <NextLink href="/sign-in" passHref>
-                <Button as="a" variant="ghost" textAlign="center">
-                  Sign in
-                </Button>
-              </NextLink>
-              <NextLink href="/sign-up" passHref>
-                <Button colorScheme="green" textAlign="center">
-                  Sign up
-                </Button>
-              </NextLink>
+              {!user?.isSignedIn ? (
+                <>
+                  <NextLink href="/sign-in" passHref>
+                    <Button as="a" variant="ghost" textAlign="center">
+                      Sign in
+                    </Button>
+                  </NextLink>
+                  <NextLink href="/sign-up" passHref>
+                    <Button colorScheme="green" textAlign="center">
+                      Sign up
+                    </Button>
+                  </NextLink>
+                </>
+              ) : (
+                <>
+                  {organization && (
+                    <NextLink
+                      href={`/platform/organization/${organization.data.id}`}
+                      passHref
+                    >
+                      <Button as="a" colorScheme="green" textAlign="center">
+                        Go to profile
+                      </Button>
+                    </NextLink>
+                  )}
+                  <Button onClick={signOut} textAlign="center">
+                    Sign out
+                  </Button>
+                </>
+              )}
             </Stack>
           </Box>
         </Stack>

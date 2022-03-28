@@ -4,6 +4,7 @@ import { Fonts, theme } from '../../theme'
 import { ChakraProvider } from '@chakra-ui/react'
 import { QueryClient, QueryClientProvider } from 'react-query'
 const queryClient = new QueryClient()
+import { ReactQueryDevtools } from 'react-query/devtools'
 
 function App({ Component, pageProps }: AppProps) {
   return (
@@ -12,6 +13,7 @@ function App({ Component, pageProps }: AppProps) {
         <Fonts />
         <Component {...pageProps} />
       </ChakraProvider>
+      <ReactQueryDevtools initialIsOpen={false} />
     </QueryClientProvider>
   )
 }

@@ -2,6 +2,8 @@
 
 const { withSentryConfig } = require('@sentry/nextjs')
 
+const isProd = process.env.node_ENV === 'production'
+
 const nextConfig = {
   reactStrictMode: true
 }
@@ -17,9 +19,11 @@ const sentryWebpackPluginOptions = {
   //   release, url, org, project, authToken, configFile, stripPrefix,
   //   urlPrefix, include, ignore
 
-  silent: process.env.NODE_ENV !== 'production' // Suppresses all logs
+  silent: !isProd // Suppresses all logs
   // For all available options, see:
   // https://github.com/getsentry/sentry-webpack-plugin#options.
 }
 
-module.exports = withSentryConfig(moduleExports, sentryWebpackPluginOptions)
+module.exports = isProd
+  ? withSentryConfig(moduleExports, sentryWebpackPluginOptions)
+  : { ...moduleExports }

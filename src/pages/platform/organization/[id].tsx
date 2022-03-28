@@ -19,6 +19,7 @@ import { FwsmMarkdown } from '../../../components/markdown'
 import Carousel from '../../../components/carousel/carousel'
 import { getOrganization, OrganizationProfile } from '../../../endpoints'
 import { Image as OrganizationImage } from '../../../endpoints/common'
+import { useOrganization } from '../../../hooks/use-organization'
 
 interface OrganizationPageProps {
   organization: OrganizationProfile
@@ -26,6 +27,8 @@ interface OrganizationPageProps {
 
 const OrganizationPage: NextPage<OrganizationPageProps> = (props) => {
   const { organization } = props
+  const { organization: currentOrganization, isCurrentOrganization } =
+    useOrganization(organization.id)
   return (
     <FwsmTemplate title={'Company profile - ' + organization.attributes.name}>
       <Box
@@ -86,17 +89,31 @@ const OrganizationPage: NextPage<OrganizationPageProps> = (props) => {
               <Text fontSize="xl" mb={4}>
                 {organization.attributes.shortDescription}
               </Text>
-              <Button
-                mt={2}
-                variant="solid"
-                as="a"
-                href={`mailto:${organization.attributes.email}`}
-                cursor="pointer"
-                colorScheme="green"
-                fontSize="xl"
-              >
-                Contact organization
-              </Button>
+              {isCurrentOrganization ? (
+                <Button
+                  mt={2}
+                  variant="solid"
+                  as="a"
+                  href="/settings/profile"
+                  cursor="pointer"
+                  colorScheme="green"
+                  fontSize="xl"
+                >
+                  Edit public profile
+                </Button>
+              ) : (
+                <Button
+                  mt={2}
+                  variant="solid"
+                  as="a"
+                  href={`mailto:${organization.attributes.email}`}
+                  cursor="pointer"
+                  colorScheme="green"
+                  fontSize="xl"
+                >
+                  Contact organization
+                </Button>
+              )}
             </GridItem>
             <GridItem
               as={Box}
