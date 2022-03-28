@@ -129,7 +129,7 @@ function EditProductDescriptionForm(props: {
       <FwsmDynamicWysiwyg
         isSubmitting={editProfileState === 'submitting'}
         onSave={onSave}
-        content={organization.attributes.description}
+        content={organization.attributes.description || ''}
       />
     </>
   )
