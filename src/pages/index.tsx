@@ -85,8 +85,6 @@ function Hero(props: HomePageContent) {
           src="/images/hero-img.jpg"
           layout="fill"
           objectFit="cover"
-          position="absolute"
-          zIndex={0}
         />
       </Box>
       <Container
