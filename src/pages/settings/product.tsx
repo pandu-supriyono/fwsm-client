@@ -126,9 +126,21 @@ function EditProductDescriptionForm(props: {
       <Heading as="h2" size="xl" mb={6}>
         Product description
       </Heading>
+      <FwsmDynamicWysiwyg
+        isSubmitting={editProfileState === 'submitting'}
+        onSave={onSave}
+        content={organization.attributes.description || ''}
+      />
     </>
   )
 }
+
+const FwsmDynamicWysiwyg = dynamic<FwsmWysiwygProps>(
+  import('../../components/wysiwyg').then((mod) => mod.FwsmWysiwyg),
+  {
+    ssr: false
+  }
+)
 
 function PageHeader(props: OrganizationProfile) {
   return (
