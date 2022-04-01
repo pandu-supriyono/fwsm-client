@@ -1,4 +1,5 @@
 import type { GetStaticProps, NextPage } from 'next'
+import FwsmPosterPreview from '../assets/fwsm-poster-preview.png'
 import { FwsmTemplate } from '../components/template'
 import {
   Heading,
@@ -24,6 +25,7 @@ import {
   ListItem
 } from '@chakra-ui/react'
 import NextLink from 'next/link'
+import NextImage from 'next/image'
 import { ChevronDownIcon, ArrowForwardIcon } from '@chakra-ui/icons'
 import { ReactNode, useState } from 'react'
 import { useQuery } from 'react-query'
@@ -51,6 +53,7 @@ const Home: NextPage<HomeProps> = (props) => {
       <HighlightedOrganizations sectors={sectors} />
       <BlurbSection {...content} />
       <SectorOverviewBlurb {...content} />
+      <FwsmDownload />
     </FwsmTemplate>
   )
 }
@@ -58,49 +61,99 @@ const Home: NextPage<HomeProps> = (props) => {
 function Hero(props: HomePageContent) {
   return (
     <Box
-      pt="2rem"
-      pb={{
-        base: '2rem',
-        lg: '8rem'
+      mt={{
+        base: 8,
+        lg: '-4rem'
       }}
       borderStyle="solid"
       borderBottom="1px"
       borderColor="gray.200"
       marginBottom={8}
+      pos="relative"
     >
+      <Box
+        pos="absolute"
+        h="100%"
+        w="100%"
+        display={{
+          base: 'none',
+          lg: 'block'
+        }}
+      >
+        <NextImage
+          alt=""
+          src="/images/hero-img.jpg"
+          layout="fill"
+          objectFit="cover"
+          position="absolute"
+          zIndex={0}
+        />
+      </Box>
       <Container
         textAlign={['left', null, 'center']}
         maxW={{
           lg: '70ch'
         }}
       >
-        <Heading as="h1" size="3xl" mb={6}>
-          Make food waste a thing of{' '}
-          <Box as="span" color="green">
-            the past
-          </Box>
-        </Heading>
-        <Text fontSize="xl" color="gray.500" mb={8}>
-          {props.attributes.lead}
-        </Text>
-        <Stack
-          justifyContent="center"
-          direction={{
-            base: 'column',
-            lg: 'row'
+        <Box
+          zIndex={1}
+          pos="relative"
+          pt={{
+            lg: '8rem'
+          }}
+          pb={{
+            base: '2rem',
+            lg: '8rem'
           }}
         >
-          <NextLink href="/sign-up" passHref>
-            <Button as="a" size="lg" colorScheme="green">
-              Sign up for free
-            </Button>
-          </NextLink>
-          <NextLink href="/platform" passHref>
-            <Button as="a" size="lg">
-              Discover partners
-            </Button>
-          </NextLink>
-        </Stack>
+          <Heading
+            as="h1"
+            size="3xl"
+            mb={6}
+            color={{
+              lg: 'white'
+            }}
+          >
+            Make food waste a thing of{' '}
+            <Box
+              as="span"
+              color={{
+                base: 'green',
+                lg: 'inherit'
+              }}
+            >
+              the past
+            </Box>
+          </Heading>
+          <Text
+            fontSize="xl"
+            color={{
+              base: 'gray.500',
+              lg: 'white'
+            }}
+            mb={8}
+          >
+            {props.attributes.lead}
+          </Text>
+          <Stack
+            justifyContent="center"
+            direction={{
+              base: 'column',
+              lg: 'row'
+            }}
+          >
+            <NextLink href="/sign-up" passHref>
+              <Button as="a" size="lg" colorScheme="green">
+                Sign up for free
+              </Button>
+            </NextLink>
+            <NextLink href="/platform" passHref>
+              <Button as="a" size="lg">
+                Discover partners
+              </Button>
+            </NextLink>
+          </Stack>
+        </Box>
       </Container>
     </Box>
   )
@@ -411,6 +464,48 @@ function SectionOverviewItem(props: {
       </Heading>
       <Text>{children}</Text>
     </LinkBox>
+  )
+}
+
+function FwsmDownload() {
+  return (
+    <Box
+      bg="gray.600"
+      color="white"
+      py={{
+        base: 8
+      }}
+    >
+      <Container>
+        <SimpleGrid
+          gridTemplateColumns={{
+            base: '1fr 1fr',
+            lg: '2fr 1fr'
+          }}
+        >
+          <Stack spacing={4} my="auto">
+            <Heading as="h2">
+              Download the In-Me Food Solution Waste Map poster for free
+            </Heading>
+            <Box>
+              <Button
+                as="a"
+                href="/downloads/fwsm-poster.pdf"
+                colorScheme="green"
+              >
+                Download now
+              </Button>
+            </Box>
+          </Stack>
+          <Box>
+            <Image
+              alt="The Food Solution Waste Map poster"
+              src="/images/fwsm-poster-preview.png"
+            />
+          </Box>
+        </SimpleGrid>
+      </Container>
+    </Box>
   )
 }
 
